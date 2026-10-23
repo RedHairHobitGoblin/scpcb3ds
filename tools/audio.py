@@ -14,9 +14,14 @@ import sys
 from concurrent.futures import ThreadPoolExecutor
 
 
-def convert(src, dst, rate):
+VOICE_DIRS = ("character/", "room/intro/guard/", "room/intro/scientist/", "room/intro/classd/", "room/intro/pa/")
+
+
+def convert(src, dst, rate, voice=False):
     os.makedirs(os.path.dirname(dst), exist_ok=True)
-    cmd = ["ffmpeg", "-v", "error", "-y", "-i", src, "-ac", "1", "-ar", str(rate),
+    # Speech is mastered much quieter than effects; bring it up to a common loudness.
+    norm = ["-af", "loudnorm=I=-14:TP=-1:LRA=11"] if voice else []
+    cmd = ["ffmpeg", "-v", "error", "-y", "-i", src, *norm, "-ac", "1", "-ar", str(rate),
            "-c:a", "adpcm_ima_wav", "-block_size", "1024", dst]
     r = subprocess.run(cmd, capture_output=True, text=True)
     return src, r.returncode == 0, r.stderr.strip()
@@ -41,7 +46,7 @@ def main():
             if os.path.exists(dst) and os.path.getmtime(dst) >= os.path.getmtime(src):
                 continue
             rate = 22050 if rel.startswith("music/") else 16000
-            jobs.append((src, dst, rate))
+            jobs.append((src, dst, rate, rel.startswith(VOICE_DIRS)))
 
     failed = 0
     with ThreadPoolExecutor(max_workers=os.cpu_count() or 4) as pool:

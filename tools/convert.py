@@ -106,11 +106,10 @@ def swizzle(pixels, flip=True):
     return tiles[:, :, MORTON_Y, MORTON_X].reshape(-1)
 
 
-def convert_texture(src, dst, limit, alpha, flip=True):
+def convert_texture(src, dst, limit, alpha, flip=True, size=None):
     img = Image.open(src)
     img = img.convert("RGBA" if alpha else "RGB")
-    w = pow2_at_most(img.width, limit)
-    h = pow2_at_most(img.height, limit)
+    w, h = size or (pow2_at_most(img.width, limit), pow2_at_most(img.height, limit))
     img = img.resize((w, h), Image.LANCZOS)
     a = np.asarray(img).astype(np.uint16)
     if alpha:
@@ -658,7 +657,7 @@ def main():
 # --- items, room fill, NPC models ------------------------------------------
 
 INV_SIZE = 64
-DOC_SIZE = 256
+DOC_SIZE = 512
 
 
 def convert_inv_icon(src, dst):
@@ -670,6 +669,17 @@ def convert_inv_icon(src, dst):
     Image.fromarray(rgba, "RGBA").save(dst + ".png")
     convert_texture(dst + ".png", dst, INV_SIZE, True, flip=False)
     os.remove(dst + ".png")
+
+
+def convert_doc(src, dst):
+    # Tall pages get a 1024-row texture so the text stays readable when zoomed.
+    w, h = Image.open(src).size
+    tw = pow2_at_most(w, DOC_SIZE)
+    th = 1024 if h > w * 1.25 and w > 300 else pow2_at_most(h, DOC_SIZE)
+    convert_texture(src, dst, DOC_SIZE, False, flip=False, size=(tw, th))
+    with open(dst, "r+b") as f:
+        f.seek(10)
+        f.write(struct.pack("<H", round(h / w * 1000)))
 
 
 def convert_items(upstream, romfs, done_tex):
@@ -704,7 +714,7 @@ def convert_items(upstream, romfs, done_tex):
             doc_src = os.path.join(upstream, t["img"])
             doc_dst = os.path.join(romfs, "docs", doc + ".t3d")
             if not os.path.exists(doc_dst) and os.path.exists(doc_src):
-                convert_texture(doc_src, doc_dst, DOC_SIZE, False, flip=False)
+                convert_doc(doc_src, doc_dst)
             elif not os.path.exists(doc_src):
                 doc = ""
         lines.append("	".join([t["name"].lower(), t["tempname"].lower(), mkey if models[mkey] else "-",

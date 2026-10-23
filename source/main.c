@@ -39,7 +39,7 @@
 
 #define WALK_SPEED (0.018f * 70.0f)
 #define SPRINT_MULT 2.5f
-#define LOOK_SPEED 120.0f
+#define LOOK_SPEED 190.0f
 #define GRAVITY    9.0f
 #define FPS70(x)   ((x) * 70.0f)
 
@@ -137,6 +137,27 @@ static void newGame(uint32_t seed, bool intro)
 #define SAVE_DIR "sdmc:/3ds/scpcb3ds"
 #define SAVE_PATH SAVE_DIR "/save.bin"
 #define SAVE_MAGIC 0x34535053
+
+#define SETTINGS_PATH SAVE_DIR "/settings.txt"
+
+static void loadSettings(void)
+{
+	FILE* f = fopen(SETTINGS_PATH, "r");
+	if (!f) return;
+	int v;
+	if (fscanf(f, "look=%d", &v) == 1 && v >= 1 && v <= 10) g_hud.lookSpeed = v;
+	fclose(f);
+}
+
+static void saveSettings(void)
+{
+	mkdir("sdmc:/3ds", 0777);
+	mkdir(SAVE_DIR, 0777);
+	FILE* f = fopen(SETTINGS_PATH, "w");
+	if (!f) return;
+	fprintf(f, "look=%d\n", g_hud.lookSpeed);
+	fclose(f);
+}
 
 static bool saveExists(void)
 {
@@ -624,6 +645,7 @@ static void handleHud(HudAction a)
 		itemsDrop(g_items.selected, P.pos, P.yaw);
 		break;
 	case ACT_CLOSE: g_hud.mode = HUD_GAME; break;
+	case ACT_SETTINGS: saveSettings(); break;
 	case ACT_KEYPAD_OK: {
 		Door* d = &world.doors[g_hud.keypadDoor];
 		if (strcmp(g_hud.keypad, d->code) == 0) {
@@ -831,8 +853,9 @@ static void updatePlayer(float dt, u32 kDown, u32 kHeld)
 	circlePosition cs;
 	hidCstickRead(&cs);
 	float lx = cs.dx / 156.0f, ly = cs.dy / 156.0f;
-	P.yaw += lx * LOOK_SPEED * dt;
-	P.pitch += ly * LOOK_SPEED * 0.75f * dt;
+	float look = LOOK_SPEED * g_hud.lookSpeed / 5.0f;
+	P.yaw += lx * look * dt;
+	P.pitch += ly * look * 0.75f * dt;
 	if (P.pitch > 85.0f) P.pitch = 85.0f;
 	if (P.pitch < -85.0f) P.pitch = -85.0f;
 
@@ -1010,6 +1033,7 @@ int main(void)
 	eventsLoad();
 	g_hud.mode = HUD_TITLE;
 	g_hud.hasSave = saveExists();
+	loadSettings();
 	if (!ok) hudMessage("No rooms in romfs:/rooms.txt", 1000);
 
 	u64 last = osGetTime(), fpsTime = last;
@@ -1028,8 +1052,9 @@ int main(void)
 		if (padActive && touching && touch.px >= PAD_X && touch.px < PAD_X + PAD_W && touch.py >= PAD_Y &&
 		    touch.py < PAD_Y + PAD_H) {
 			if (padLastX >= 0 && !(kDown & KEY_TOUCH)) {
-				P.yaw += (touch.px - padLastX) * 0.45f;
-				P.pitch -= (touch.py - padLastY) * 0.45f;
+				float look = 0.7f * g_hud.lookSpeed / 5.0f;
+				P.yaw += (touch.px - padLastX) * look;
+				P.pitch -= (touch.py - padLastY) * look;
 				if (P.pitch > 85.0f) P.pitch = 85.0f;
 				if (P.pitch < -85.0f) P.pitch = -85.0f;
 			}
@@ -1054,7 +1079,10 @@ int main(void)
 			kDown &= ~(KEY_A | KEY_START);
 		}
 		if (kDown & KEY_START) {
-			if (g_hud.mode == HUD_GAME) g_hud.mode = HUD_PAUSE;
+			if (g_hud.mode == HUD_GAME) {
+				g_hud.mode = HUD_PAUSE;
+				g_hud.controls = false;
+			}
 			else if (g_hud.mode == HUD_PAUSE) g_hud.mode = HUD_GAME;
 		}
 		bool playing = g_hud.mode == HUD_GAME || g_hud.mode == HUD_DOCUMENT || g_hud.mode == HUD_KEYPAD;

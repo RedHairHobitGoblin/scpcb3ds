@@ -367,9 +367,14 @@ void worldSpawnPoint(const World* w, float pos[3], float* yaw)
 		if (strcmp(w->tpl[w->map.rooms[i].tpl].info.name, "start") == 0) pick = i;
 	if (pick < 0) return;
 	const MapRoomPlacement* r = &w->map.rooms[pick];
+	*yaw = (float)r->angle;
+	if (strcmp(w->tpl[r->tpl].info.name, "start") == 0) {
+		float local[3] = { 3584 * ROOM_SCALE, 704 * ROOM_SCALE, -1024 * ROOM_SCALE };
+		worldRoomToWorld(w, pick, local, pos);
+		return;
+	}
 	pos[0] = r->gx * ROOM_SPACING;
 	pos[2] = -r->gy * ROOM_SPACING;
-	*yaw = (float)r->angle;
 }
 
 void worldCell(const float pos[3], int* gx, int* gy)

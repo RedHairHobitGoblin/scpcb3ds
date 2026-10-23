@@ -14,7 +14,7 @@
 #define RS (8.0f / 2048.0f)
 #define DEG2RAD ((float)M_PI / 180.0f)
 
-enum { I_OFF, I_WAKE, I_PAPER, I_DOOR, I_EXIT, I_ESCORT, I_CHAMBER, I_INSIDE, I_BLACKOUT, I_DONE };
+enum { I_OFF, I_WAKE, I_PAPER, I_DOOR, I_EXIT, I_ESCORT, I_CHAMBER, I_INSIDE, I_BLACKOUT, I_ESCAPE, I_DONE };
 
 static struct {
 	int stage;
@@ -254,10 +254,10 @@ static void finishIntoStartRoom(World* w, IntroPlayer* p)
 			}
 		}
 	}
-	npc173SetIdle(false);
 	worldStream(w, p->pos);
 	npcsSpawnFacility(w, p->pos);
-	I.stage = I_DONE;
+	I.stage = I_ESCAPE;
+	I.t = 0;
 	*p->frozen = false;
 	*p->fade = 0;
 	*p->blinkTimer = 455;
@@ -274,6 +274,17 @@ const char* introUpdate(World* w, IntroPlayer* p, float dt)
 	if (!introRunning()) return NULL;
 	I.t += dt;
 	I.total += dt;
+	if (I.stage == I_ESCAPE) {
+		if (I.t > 4.0f) {
+			sfxPlay("room/intro/light2", 1);
+			sfxPlay("scp/173/stonedrag", 0.8f);
+			*p->blinkTimer = -10;
+			npc173Spawn(w, p->pos);
+			hudMessage("Hold Y to run.", 6);
+			I.stage = I_DONE;
+		}
+		return NULL;
+	}
 	float bp[3];
 	localOf(w, p->pos, bp);
 

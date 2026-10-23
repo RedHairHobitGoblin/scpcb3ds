@@ -23,6 +23,7 @@ typedef enum {
 	ACT_TAB_INV,
 	ACT_LOOK_PAD,
 	ACT_PAD_USE,
+	ACT_SETTINGS,
 } HudActionKind;
 
 typedef struct {
@@ -35,6 +36,8 @@ typedef struct {
 	bool mapTab;
 	bool hasSave;
 	bool lookPad;
+	bool controls;
+	int lookSpeed;
 	char message[192];
 	float messageTime;
 	int docTpl;

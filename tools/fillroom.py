@@ -111,7 +111,7 @@ def extract(mapsystem_path):
                 loop_depth = max(0, loop_depth - 1)
                 continue
 
-            m = re.match(r"^([\w\\\[\]]+)\s*=\s*CreateDoor\((.*)$", st, re.I)
+            m = re.match(r"^([\w\\\[\]]+)(?:\.\w+)?\s*=\s*CreateDoor\((.*)$", st, re.I)
             if m:
                 if loop_depth:
                     skipped += 1

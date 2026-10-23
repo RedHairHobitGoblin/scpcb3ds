@@ -30,6 +30,8 @@ Hud g_hud;
 
 static C3D_Tex s_docTex;
 static bool s_docLoaded;
+static float s_docAspect, s_docX, s_docY, s_docZoom;
+static int s_dragX = -1, s_dragY = -1;
 
 static Tex3DS_SubTexture s_sub64 = { 64, 64, 0.0f, 1.0f, 1.0f, 0.0f };
 static Tex3DS_SubTexture s_sub256 = { 256, 256, 0.0f, 1.0f, 1.0f, 0.0f };
@@ -67,6 +69,7 @@ void hudInit(void)
 	s_endingOk = loadT3D(&s_endingTex, "romfs:/menu/ending.t3d");
 	memset(&g_hud, 0, sizeof(g_hud));
 	g_hud.docTpl = -1;
+	g_hud.lookSpeed = 5;
 	g_hud.keypadDoor = -1;
 }
 
@@ -104,6 +107,10 @@ void hudShowDocument(int tpl)
 			C3D_TexSetFilter(&s_docTex, GPU_LINEAR, GPU_LINEAR);
 			s_sub256.width = w;
 			s_sub256.height = h;
+			uint16_t a = hdr[10] | (hdr[11] << 8);
+			s_docAspect = a ? a / 1000.0f : (float)h / w;
+			s_docX = s_docY = 0;
+			s_docZoom = 1;
 			s_docLoaded = true;
 		}
 	}
@@ -350,16 +357,37 @@ static HudAction drawGame(const HudInfo* info, bool touched, int tx, int ty)
 static HudAction drawDocument(bool touched, int tx, int ty)
 {
 	HudAction act = { ACT_NONE, 0 };
+	bool onButtons = ty >= 210 && tx >= 196;
 	if (s_docLoaded) {
-		float scale = 236.0f / s_sub256.height;
+		float pw = 312 * s_docZoom, ph = pw * s_docAspect;
+		touchPosition t;
+		hidTouchRead(&t);
+		if ((hidKeysHeld() & KEY_TOUCH) && !(touched && onButtons)) {
+			if (s_dragX >= 0) {
+				s_docX += t.px - s_dragX;
+				s_docY += t.py - s_dragY;
+			}
+			s_dragX = t.px;
+			s_dragY = t.py;
+		} else {
+			s_dragX = s_dragY = -1;
+		}
+		float minX = fminf(0, W - 4 - pw), minY = fminf(0, 236 - ph);
+		s_docX = fmaxf(minX, fminf(0, s_docX));
+		s_docY = fmaxf(minY, fminf(0, s_docY));
 		C2D_Image img = { &s_docTex, &s_sub256 };
-		C2D_DrawImageAt(img, W / 2 - s_sub256.width * scale / 2, 2, 0.5f, NULL, scale, scale);
+		C2D_DrawImageAt(img, 4 + s_docX, 2 + s_docY, 0.5f, NULL, pw / s_sub256.width, ph / s_sub256.height);
+		if (buttonEx("ZOOM", 196, 212, 58, 24, touched, tx, ty, s_docZoom > 1)) {
+			float cx = (160 - 4 - s_docX) / s_docZoom, cy = (120 - 2 - s_docY) / s_docZoom;
+			s_docZoom = s_docZoom > 1 ? 1 : 2.2f;
+			s_docX = 156 - cx * s_docZoom;
+			s_docY = 118 - cy * s_docZoom;
+		}
+		if (ph > 240 && s_docZoom == 1) text("Drag to scroll", 8, 222, 0.4f, COL_DIM, 0);
 	} else if (g_hud.docTpl >= 0) {
 		textCentered(g_items.tpl[g_hud.docTpl].display, W / 2, 100, 0.6f, COL_TEXT);
 	}
-	if (touched) act.kind = ACT_CLOSE;
-	(void)tx;
-	(void)ty;
+	if (button("CLOSE", 258, 212, 58, 24, touched, tx, ty)) act.kind = ACT_CLOSE;
 	return act;
 }
 
@@ -446,16 +474,52 @@ static HudAction drawEnding(bool touched, int tx, int ty)
 	return act;
 }
 
-static HudAction drawPause(bool touched, int tx, int ty)
+static HudAction drawControls(bool touched, int tx, int ty)
 {
 	HudAction act = { ACT_NONE, 0 };
-	textCentered("PAUSED", W / 2, 14, 0.9f, COL_ACCENT);
-	float y = 44;
-	if (button("RESUME", 80, y, 160, 30, touched, tx, ty)) act.kind = ACT_RESUME;
-	if (button("SAVE", 80, y += 36, 160, 30, touched, tx, ty)) act.kind = ACT_SAVE;
-	if (g_hud.hasSave && button("LOAD", 80, y += 36, 160, 30, touched, tx, ty)) act.kind = ACT_LOAD;
-	if (button("MAIN MENU", 80, y += 36, 160, 30, touched, tx, ty)) act.kind = ACT_MAIN_MENU;
-	if (button("QUIT", 80, y += 36, 160, 30, touched, tx, ty)) act.kind = ACT_QUIT;
+	textCentered("CONTROLS", W / 2, 6, 0.8f, COL_ACCENT);
+	static const char* rows[][2] = {
+		{ "Circle Pad", "Move" },
+		{ "C-Stick", "Look (or tap LOOK and drag)" },
+		{ "A / L", "Use: doors, items, buttons" },
+		{ "X / R", "Blink (hold to keep eyes shut)" },
+		{ "Y / D-Up", "Sprint" },
+		{ "B / D-Down", "Crouch" },
+		{ "Touch", "Inventory, documents, S-NAV" },
+		{ "START", "Pause" },
+	};
+	panel(6, 30, 308, 140);
+	for (int i = 0; i < 8; i++) {
+		text(rows[i][0], 14, 36 + i * 16.5f, 0.45f, COL_ACCENT, 0);
+		text(rows[i][1], 104, 36 + i * 16.5f, 0.45f, COL_TEXT, 0);
+	}
+	char speed[24];
+	snprintf(speed, sizeof(speed), "LOOK SPEED  %d", g_hud.lookSpeed);
+	text(speed, 14, 182, 0.55f, COL_TEXT, 0);
+	if (button("-", 150, 176, 40, 26, touched, tx, ty) && g_hud.lookSpeed > 1) {
+		g_hud.lookSpeed--;
+		act.kind = ACT_SETTINGS;
+	}
+	if (button("+", 196, 176, 40, 26, touched, tx, ty) && g_hud.lookSpeed < 10) {
+		g_hud.lookSpeed++;
+		act.kind = ACT_SETTINGS;
+	}
+	if (button("BACK", 80, 208, 160, 28, touched, tx, ty)) g_hud.controls = false;
+	return act;
+}
+
+static HudAction drawPause(bool touched, int tx, int ty)
+{
+	if (g_hud.controls) return drawControls(touched, tx, ty);
+	HudAction act = { ACT_NONE, 0 };
+	textCentered("PAUSED", W / 2, 10, 0.9f, COL_ACCENT);
+	float y = 38;
+	if (button("RESUME", 80, y, 160, 28, touched, tx, ty)) act.kind = ACT_RESUME;
+	if (button("SAVE", 80, y += 33, 160, 28, touched, tx, ty)) act.kind = ACT_SAVE;
+	if (g_hud.hasSave && button("LOAD", 80, y += 33, 160, 28, touched, tx, ty)) act.kind = ACT_LOAD;
+	if (button("CONTROLS", 80, y += 33, 160, 28, touched, tx, ty)) g_hud.controls = true;
+	if (button("MAIN MENU", 80, y += 33, 160, 28, touched, tx, ty)) act.kind = ACT_MAIN_MENU;
+	if (button("QUIT", 80, y += 33, 160, 28, touched, tx, ty)) act.kind = ACT_QUIT;
 	return act;
 }
 
