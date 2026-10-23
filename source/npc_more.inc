@@ -301,3 +301,65 @@ static const char* update1048a(World* w, Npc* n, const PlayerView* pv, float dt)
 	}
 	return NULL;
 }
+
+static float yawToPlayer(const Npc* n, const PlayerView* pv)
+{
+	float want = atan2f(-(pv->pos[0] - n->pos[0]), -(pv->pos[2] - n->pos[2])) / DEG2RAD;
+	return fabsf(fmodf(want - n->yaw + 540.0f, 360.0f) - 180.0f);
+}
+
+static const char* updateTentacle(Npc* n, const PlayerView* pv, float dt)
+{
+	float dist = dist3(n->pos, pv->pos);
+	if (dist > HIDE_DISTANCE) return NULL;
+	switch (n->state) {
+	case 0:
+		n->hidden = n->frame < 283;
+		if (n->frame < 283) {
+			if (dist < 2.5f) {
+				n->frame = 284;
+				sfxPlay("room/035chamber/tentaclespawn", 1.0f);
+			}
+			break;
+		}
+		npcFace(n, pv->pos, 25.0f / 70.0f * 10, dt);
+		npcAnimate(n, 283, 389, 0.3f, false, dt);
+		if (n->frame > 388) n->state = 1;
+		break;
+	case 1:
+		sfxLoop3D(&n->chan2, "room/035chamber/tentacleidle", n->pos, 6.0f, 1.0f);
+		if (dist < 1.8f && yawToPlayer(n, pv) < 20) n->state = 2;
+		npcFace(n, pv->pos, 25.0f / 70.0f * 10, dt);
+		npcAnimate(n, 33, 174, 0.3f, true, dt);
+		break;
+	case 2:
+		if (n->frame > 33 && n->frame < 174) {
+			npcAnimate(n, 33, 174, 2.0f, false, dt);
+			break;
+		}
+		npcFace(n, pv->pos, 10.0f / 70.0f * 10, dt);
+		if (n->frame > 33) {
+			sfxStop(n->chan2);
+			n->chan2 = -1;
+			n->frame = 2;
+			sfxPlay(rand() % 2 ? "room/035chamber/tentacleattack1" : "room/035chamber/tentacleattack2", 1.0f);
+		}
+		npcAnimate(n, 2, 32, 0.3f, false, dt);
+		if (crossed(n, 5) && dist < 1.8f && yawToPlayer(n, pv) < 20) {
+			float dmg = frand(1.0f, 1.5f) - g_wear.vest * 0.5f;
+			hurt(dmg);
+			sfxPlay(rand() % 2 ? "ambient/general/damage2" : "ambient/general/damage3", 1.0f);
+			if (pv->injuries + dmg > 3.0f)
+				return "\"We will need more than the regular cleaning team to take care of this. Large and highly active "
+				       "tentacle-like appendages seem to have formed here. Their level of aggression is unlike anything we've "
+				       "seen before - it looks like they have beaten some unfortunate Class D to death at some point during "
+				       "the breach.\"";
+		}
+		if (n->frame >= 32) {
+			n->state = 1;
+			n->frame = 173;
+		}
+		break;
+	}
+	return NULL;
+}

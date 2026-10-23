@@ -11,6 +11,7 @@ typedef struct {
 	float yaw, pitch;
 	bool eyesClosed;
 	bool dead;
+	float injuries;
 } PlayerView;
 
 void npc173Load(void);

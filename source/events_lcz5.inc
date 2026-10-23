@@ -484,3 +484,27 @@ static const char* evRoom3pit1048(World* w, Event* e, EvPlayer* p, float dt)
 	e->pressed = 0;
 	return NULL;
 }
+
+static const char* evAlarm(World* w, Event* e, EvPlayer* p, float dt)
+{
+	if (e->state == 0 && !inRoom(w, e, p)) return NULL;
+	float prev = e->state;
+	e->state += FRAMES(dt);
+	if (e->state < 2000 && !sfxPlaying(e->chan)) e->chan = sfxPlay("alarm/alarm", 0.6f);
+	if (e->state3 < 11 && !sfxPlaying(e->chan2)) {
+		char snd[24];
+		snprintf(snd, sizeof(snd), "alarm/alarm2_%d", (int)++e->state3);
+		e->chan2 = sfxPlay(snd, 1.0f);
+	}
+	if (fmodf(prev, 600) <= 300 && fmodf(e->state, 600) > 300) {
+		int i = (int)floorf((e->state - 5000) / 600) + 1;
+		char snd[48];
+		if (i == 0) sfxPlay("room/intro/pa/scripted/scripted6", 1.0f);
+		if (i > 0 && i < 26) {
+			snprintf(snd, sizeof(snd), "room/intro/commotion/commotion%d", i);
+			sfxPlay(snd, 1.0f);
+		}
+		if (i > 26) e->removed = true;
+	}
+	return NULL;
+}

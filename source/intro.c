@@ -261,7 +261,6 @@ static void finishIntoStartRoom(World* w, IntroPlayer* p)
 	*p->frozen = false;
 	*p->fade = 0;
 	*p->blinkTimer = 455;
-	sfxPlay("alarm/alarm", 0.8f);
 }
 
 void introFinish(World* w, IntroPlayer* p)

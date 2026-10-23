@@ -1103,7 +1103,7 @@ int main(void)
 			if (kDown & KEY_L) interact();
 			worldUpdateDoors(&world, dt);
 			itemsUpdate(&world, dt);
-			PlayerView pv = { P.pos, eye, P.yaw, P.pitch, eyesClosed(), P.dead };
+			PlayerView pv = { P.pos, eye, P.yaw, P.pitch, eyesClosed(), P.dead, P.injuries };
 			const char* death = npc173Update(&world, &pv, dt);
 			const char* death2 = npcsUpdate(&world, &pv, dt);
 			if (!death) death = death2;

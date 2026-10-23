@@ -123,13 +123,21 @@ static const char* evRoom2offices035(World* w, Event* e, EvPlayer* p, float dt)
 		if (&s_events[i] != e && !s_events[i].removed && !strcmp(defName(&s_events[i]), "room035") && s_events[i].state < 0)
 			released = true;
 	if (!released || roomDist(w, e, p) >= 8) return NULL;
-	float c[3];
-	roomCentre(w, e->room, c);
 	float a = (float)w->map.rooms[e->room].angle * DEG2RAD;
-	c[0] += sinf(a) * 0.5f;
-	c[2] += cosf(a) * 0.5f;
-	spawnBody(w, NPC_CLASSD, c, (float)w->map.rooms[e->room].angle + 180, 19);
-	e->removed = true;
+	Npc* body = npcGet(e->npc[0]);
+	if (!body || body->type != NPC_CLASSD) {
+		float c[3];
+		roomCentre(w, e->room, c);
+		c[0] += sinf(a) * 0.5f;
+		c[2] += cosf(a) * 0.5f;
+		e->npc[0] = spawnBody(w, NPC_CLASSD, c, (float)w->map.rooms[e->room].angle + 180, 19);
+		return NULL;
+	}
+	if (dist3(body->pos, p->pos) < 2.5f) {
+		float t[3] = { body->pos[0] + sinf(a) * 0.6f, w->map.rooms[e->room].y, body->pos[2] + cosf(a) * 0.6f };
+		npcSpawn(NPC_TENTACLE, t, (float)w->map.rooms[e->room].angle);
+		e->removed = true;
+	}
 	return NULL;
 }
 

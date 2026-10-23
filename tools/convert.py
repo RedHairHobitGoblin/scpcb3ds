@@ -1016,17 +1016,19 @@ SKINNED_NPCS = [
     ("035", "GFX/npcs/035.b3d", None),  # the host SCP-035 wears (room035)
     ("860", "GFX/npcs/forestmonster.b3d", 0.5 / 20.0),  # SCP-860-2 (NPCs.ini scale / 20)
     ("1499", "GFX/npcs/1499-1.b3d", 0.08 / 4.0),  # SCP-1499-1 (NPCs.ini scale / 4)
+    ("tentacle", "GFX/npcs/035tentacle.b3d", 0.065, "tentacle.jpg"),  # the mesh names no texture
+    ("clerk", "GFX/npcs/clerk.b3d", None),
 ]
 # target heights (m) for the models sized from MeshWidth/MeshHeight at runtime
 NPC_HEIGHTS = {"049": 1.25, "classd": 1.25, "mtf": 1.25, "939": 1.3, "zombie": 1.2, "surgeon": 1.2,
-               "066": 0.35, "372": 0.3, "5131": 1.9, "966": 1.7, "1048a": 0.35, "035": 1.25}
+               "066": 0.35, "372": 0.3, "5131": 1.9, "966": 1.7, "1048a": 0.35, "035": 1.25, "clerk": 1.25}
 NPC_HEIGHT = 1.25  # fallback for models whose scale comes from MeshHeight at runtime
 
 
 def convert_skinned(upstream, romfs, done_tex):
     os.makedirs(os.path.join(romfs, "npcs"), exist_ok=True)
     lines = []
-    for name, src, scale in SKINNED_NPCS:
+    for name, src, scale, *tex in SKINNED_NPCS:
         path = os.path.join(upstream, src)
         try:
             bones, mesh, vw, last = b3danim.load_anim_b3d(path)
@@ -1036,7 +1038,7 @@ def convert_skinned(upstream, romfs, done_tex):
         lo, hi = b3danim.bounds_world(bones, mesh)
         if scale is None:
             scale = NPC_HEIGHTS.get(name, NPC_HEIGHT) / max(hi[1] - lo[1], 1e-4)
-        keys = [model_texture(done_tex, os.path.dirname(path), tex) for tex, _ in mesh["surfs"]]
+        keys = [model_texture(done_tex, os.path.dirname(path), t or (tex[0] if tex else None)) for t, _ in mesh["surfs"]]
         b3danim.write_skn(os.path.join(romfs, "npcs", name + ".skn"), bones, mesh, vw, last, keys)
         lines.append(f"{name} {scale:.6f} {lo[1]:.4f}")
         print(f"skinned {name:6s} {len(bones):3d} bones {len(mesh['verts']):5d} verts {last:5d} frames "

@@ -465,7 +465,7 @@ static bool s_remoteDoorOn;
 
 static const EventDef s_defs[] = {
 	{ "173", NULL },
-	{ "alarm", NULL },
+	{ "alarm", evAlarm },
 	{ "pocketdimension", NULL },
 	{ "tunnel106", evTunnel106 },
 	{ "lockroom173", evLockroom173 },

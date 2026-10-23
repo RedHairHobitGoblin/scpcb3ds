@@ -18,13 +18,14 @@
 #define HIDE_DISTANCE 15.0f
 
 static const char* s_modelNames[NPC_TYPES] = { "106", "049", "096", "guard", "classd", "mtf", "939", "966",
-                                                "zombie", "surgeon", "066", "372", "5131", "1048a", "035", "860", "1499" };
+                                                "zombie", "surgeon", "066", "372", "5131", "1048a", "035", "860", "1499",
+                                                "tentacle", "clerk" };
 
-static const float s_yawOffset[NPC_TYPES] = { 0, 0, 0, 180, 180, 180, 0, 0, 180, 0, 0, 0, 0, 0, 180, 0, 180 };
+static const float s_yawOffset[NPC_TYPES] = { 0, 0, 0, 180, 180, 180, 0, 0, 180, 0, 0, 0, 0, 0, 180, 0, 180, 0, 180 };
 
 static const float s_speed[NPC_TYPES] = { 1.2f / 100, 1.5f / 100, 9.0f / 100, 2.0f / 100, 2.0f / 100,
                                           2.0f / 100, 4.0f / 100, 1.0f / 100, 0.8f / 100, 2.0f / 100,
-                                          2.0f / 100, 4.0f / 100, 0, 1.5f / 100, 2.0f / 100, 8.0f / 100, 1.5f / 100 };
+                                          2.0f / 100, 4.0f / 100, 0, 1.5f / 100, 2.0f / 100, 8.0f / 100, 1.5f / 100, 0, 2.0f / 100 };
 
 static SkinModel s_models[NPC_TYPES];
 static bool s_modelTried[NPC_TYPES];
@@ -618,7 +619,7 @@ static const char* update049(World* w, Npc* n, const PlayerView* pv, float dt)
 static void updateHuman(World* w, Npc* n, float dt)
 {
 	if (n->dead) {
-		n->frame = n->type == NPC_CLASSD ? 19 : 286;
+		n->frame = n->type == NPC_CLASSD ? 19 : n->type == NPC_CLERK ? 60 : 286;
 		return;
 	}
 	if (n->scripted) return;
@@ -738,6 +739,7 @@ const char* npcsUpdate(World* w, const PlayerView* pv, float dt)
 		case NPC_372: d = update372(w, n, pv, dt); break;
 		case NPC_5131: d = update5131(w, n, pv, dt); break;
 		case NPC_1048A: d = n->scripted ? NULL : update1048a(w, n, pv, dt); break;
+		case NPC_TENTACLE: d = updateTentacle(n, pv, dt); break;
 		case NPC_860:
 		case NPC_1499: break;
 		default: updateHuman(w, n, dt); break;
@@ -806,7 +808,7 @@ int npcDebugNext(const World* w, float pos[3], float* yaw, bool first)
 void npcDebugInfo(const float pos[3], char* out, int size)
 {
 	static const char* names[NPC_TYPES] = { "106", "049", "096", "grd", "cD", "mtf", "939", "966",
-	                                         "zmb", "008", "066", "372", "513", "1048", "035", "860", "1499" };
+	                                         "zmb", "008", "066", "372", "513", "1048", "035", "860", "1499", "tent", "clrk" };
 	int best = -1;
 	float bd = 1e9f;
 	for (int i = 0; i < MAX_NPCS; i++) {

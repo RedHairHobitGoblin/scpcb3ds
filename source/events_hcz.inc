@@ -463,6 +463,45 @@ static const char* evRoom2tesla(World* w, Event* e, EvPlayer* p, float dt)
 			}
 		}
 	}
+	bool clerkUsed = false;
+	for (int i = 0; i < s_nevents; i++)
+		if (s_events[i].def == e->def && s_events[i].state4 != 0) clerkUsed = true;
+	Npc* clerk = npcGet(e->npc[0]);
+	if (clerk && clerk->type != NPC_CLERK) clerk = NULL;
+	if (!clerkUsed && inRoom(w, e, p)) {
+		float o5[3], o6[3];
+		if (eventsRoomObject(w, e->room, 5, o5) && eventsRoomObject(w, e->room, 6, o6)) {
+			float* from = dist3(o5, p->pos) < dist3(o6, p->pos) ? o6 : o5;
+			from[1] = ry;
+			e->npc[0] = npcSpawn(NPC_CLERK, from, yawTo(from, o2));
+			clerk = npcGet(e->npc[0]);
+			if (clerk) {
+				clerk->scripted = true;
+				npcSnapToFloor(w, clerk);
+			}
+			e->state4 = 1;
+		}
+	}
+	if (clerk && e->state4 == 1) {
+		clerk->currSpeed = curveValue(0.03f, clerk->currSpeed, 5, dt);
+		npcAnimate(clerk, 301, 319, clerk->currSpeed * 18, true, dt);
+		npcWalkTo(w, clerk, o2, FRAMES(clerk->currSpeed), dt);
+		if (e->state == 0)
+			for (int i = 0; i < 3; i++)
+				if (distXZ(clerk->pos, spot[i]) < 400 * RSC) {
+					sfxStop(e->chan);
+					e->chan = sfxPlay3D("room/tesla/windup", o3, 4.0f, 0.5f);
+					e->state = 1;
+					break;
+				}
+		if (e->state > 40 && e->state < 70) e->state4 = 2;
+	} else if (clerk && e->state4 == 2) {
+		npcAnimate(clerk, 41, 60, 0.5f, false, dt);
+		if (clerk->frame >= 60) {
+			clerk->dead = true;
+			e->state4 = 3;
+		}
+	}
 	return death;
 }
 

@@ -373,6 +373,22 @@ static const char* evRoom035(World* w, Event* e, EvPlayer* p, float dt)
 	bool inside = p->pos[0] > fminf(o7[0], o8[0]) && p->pos[0] < fmaxf(o7[0], o8[0]) &&
 	              p->pos[2] > fminf(o7[2], o8[2]) && p->pos[2] < fmaxf(o7[2], o8[2]);
 	if (inside) {
+		float ry = w->map.rooms[e->room].y;
+		Npc* t0 = npcGet(e->npc[1]);
+		if (!t0 || t0->type != NPC_TENTACLE) {
+			float o4[3];
+			eventsRoomObject(w, e->room, 4, o4);
+			o4[1] = ry;
+			e->npc[1] = npcSpawn(NPC_TENTACLE, o4, 0);
+		} else if (t0->state > 0) {
+			Npc* t1 = npcGet(e->npc[2]);
+			if (!t1 || t1->type != NPC_TENTACLE) {
+				float c[3];
+				roomCentre(w, e->room, c);
+				c[1] = ry;
+				e->npc[2] = npcSpawn(NPC_TENTACLE, c, (float)w->map.rooms[e->room].angle);
+			}
+		}
 		e->state2 = fminf(e->state2 + FRAMES(dt) / 6000, 1.0f);
 		e->state3 = curveValue(e->state2, e->state3, 50, dt);
 		*p->injuries += FRAMES(dt) / (g_wear.hazmat ? 10000.0f : 5000.0f);
