@@ -1,0 +1,53 @@
+; Room shader: transforms vertices, passes both UV sets through and
+; computes a per-vertex distance fog factor, passed in the colour alpha.
+
+.fvec projection[4], modelView[4]
+.fvec fogParams ; x = 1/(far-near), y = far/(far-near), z = 1/255
+
+.constf myconst(0.0, 1.0, 0.0, 0.0)
+.alias  zeros myconst.xxxx
+.alias  ones  myconst.yyyy
+
+.out outpos position
+.out outtc0 texcoord0
+.out outtc1 texcoord1
+.out outclr color
+
+.alias inpos v0
+.alias intc0 v1
+.alias intc1 v2
+.alias inclr v3
+
+.proc main
+	; r0 = (inpos.xyz, 1.0)
+	mov r0.xyz, inpos
+	mov r0.w,   ones
+
+	; r1 = modelView * r0
+	dp4 r1.x, modelView[0], r0
+	dp4 r1.y, modelView[1], r0
+	dp4 r1.z, modelView[2], r0
+	dp4 r1.w, modelView[3], r0
+
+	; outpos = projection * r1
+	dp4 outpos.x, projection[0], r1
+	dp4 outpos.y, projection[1], r1
+	dp4 outpos.z, projection[2], r1
+	dp4 outpos.w, projection[3], r1
+
+	mov outtc0, intc0
+	mov outtc1, intc1
+
+	; fog = clamp((far - dist) / (far - near)), dist = -view z
+	mul r2.x, fogParams.xxxx, r1.zzzz
+	add r2.x, fogParams.yyyy, r2.xxxx
+	max r2.x, zeros, r2.xxxx
+	min r2.x, ones, r2.xxxx
+
+	; colour = vertex colour / 255; alpha = fog factor (blended in the texture combiner)
+	mul r3, fogParams.zzzz, inclr
+	mov r3.w, r2.xxxx
+	mov outclr, r3
+
+	end
+.end

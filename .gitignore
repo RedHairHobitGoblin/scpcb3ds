@@ -1,0 +1,13 @@
+build/
+*.3dsx
+*.smdh
+*.elf
+upstream/
+romfs/
+.testing/
+/*.cia
+.cia/dl/
+.cia/banner.bnr
+switch_security_research.md
+release/
+__pycache__/

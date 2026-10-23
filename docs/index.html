@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SCP - Containment Breach for 3DS</title>
+<link rel="icon" href="img/icon.png">
+<style>
+  :root { --bg: #0b0c0e; --panel: #17181c; --edge: #3e4046; --text: #e2e2dc; --dim: #8a8d93; --accent: #ecac3a; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.6 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width: 860px; margin: 0 auto; padding: 32px 16px 64px; }
+  header { text-align: center; padding: 24px 0 8px; }
+  header img { width: 96px; height: 96px; image-rendering: pixelated; border: 1px solid var(--edge); }
+  h1 { font-size: 2rem; margin: 16px 0 4px; letter-spacing: .02em; }
+  h2 { font-size: 1.15rem; margin: 40px 0 12px; padding-left: 10px; border-left: 3px solid var(--accent); }
+  .sub { color: var(--dim); margin: 0; }
+  .buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin: 28px 0; }
+  .btn { display: inline-block; padding: 12px 22px; border: 1px solid var(--edge); background: var(--panel);
+         color: var(--text); text-decoration: none; font-weight: 600; }
+  .btn.main { border-color: var(--accent); color: var(--accent); }
+  .btn:hover { border-color: var(--accent); }
+  .shots { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+  .shots img { width: 100%; border: 1px solid var(--edge); display: block; }
+  .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .pair img { width: 100%; border: 1px solid var(--edge); }
+  table { border-collapse: collapse; width: 100%; }
+  td { padding: 6px 10px; border-bottom: 1px solid var(--edge); vertical-align: top; }
+  td:first-child { color: var(--accent); white-space: nowrap; width: 1%; }
+  ol li { margin-bottom: 6px; }
+  code { background: var(--panel); padding: 1px 6px; border: 1px solid var(--edge); }
+  a { color: var(--accent); }
+  footer { margin-top: 48px; color: var(--dim); font-size: .9rem; border-top: 1px solid var(--edge); padding-top: 16px; }
+  @media (max-width: 560px) { .pair { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <img src="img/icon.png" alt="">
+    <h1>SCP - Containment Breach for 3DS</h1>
+    <p class="sub">An unofficial native port for the Nintendo 3DS and New 3DS. By RedHairHobitGoblin.</p>
+  </header>
+
+  <div class="buttons">
+    <a class="btn main" href="https://github.com/cheapcow787-gif/scpcb3ds/releases/latest">Download</a>
+    <a class="btn" href="https://github.com/cheapcow787-gif/scpcb3ds">Source code</a>
+  </div>
+
+  <div class="pair">
+    <img src="img/title.png" alt="The title screen on both screens">
+    <img src="img/hud.png" alt="In the facility, with the inventory on the touch screen">
+  </div>
+
+  <h2>What's in it</h2>
+  <p>The whole facility: randomly generated light containment, heavy containment and entrance zones,
+  every room, door, keycard and item, and all of the game's events, from the intro with Agent Ulgrin to
+  both Gate A and Gate B endings. SCP-173, 106, 096, 049, 939, 966, 035, 860-2, 1499-1 and the rest are
+  all there, along with SCP-914, 294, 1162, the femur breaker, the maintenance tunnels, the forest and
+  dimension 1499. The visuals are toned down to fit the hardware. Progress saves to the SD card.</p>
+
+  <div class="shots">
+    <img src="img/escort.png" alt="Following the guard through the tunnel in the intro">
+    <img src="img/corridor.png" alt="The Class-D cell corridor">
+    <img src="img/1499.png" alt="Dimension 1499">
+  </div>
+
+  <h2>Install</h2>
+  <p>You need a 3DS or New 3DS with custom firmware (Luma3DS). There are two builds; pick one.</p>
+  <ol>
+    <li><b>CIA (shows up on the HOME Menu):</b> copy <code>SCPCB3DS.cia</code> to the SD card and
+      install it with FBI.</li>
+    <li><b>3DSX (Homebrew Launcher):</b> copy <code>scpcb3ds.3dsx</code> to <code>sdmc:/3ds/</code>
+      and launch it from the Homebrew Launcher.</li>
+  </ol>
+  <p>For sound, the console needs its DSP firmware dumped once: run DSP1 if you haven't already.</p>
+
+  <h2>Controls</h2>
+  <table>
+    <tr><td>Circle Pad</td><td>Move</td></tr>
+    <tr><td>C-Stick</td><td>Look (New 3DS). On an Old 3DS, tap LOOK on the touch screen and drag</td></tr>
+    <tr><td>A or L</td><td>Use: doors, items, levers, buttons</td></tr>
+    <tr><td>X or R</td><td>Blink (hold to keep your eyes shut)</td></tr>
+    <tr><td>Y or D-Pad Up</td><td>Sprint</td></tr>
+    <tr><td>B or D-Pad Down</td><td>Crouch</td></tr>
+    <tr><td>Touch screen</td><td>Inventory, documents, keypads and the S-NAV map</td></tr>
+    <tr><td>START</td><td>Pause, save and load</td></tr>
+  </table>
+
+  <footer>
+    Based on <a href="https://github.com/regalis11/scpcb">SCP - Containment Breach</a> by Regalis and
+    contributors, and the SCP Foundation (<a href="https://scp-wiki.wikidot.com">scp-wiki</a>).
+    Licensed under <a href="https://creativecommons.org/licenses/by-sa/3.0/">CC BY-SA 3.0</a>; this port
+    is released under the same license. Not affiliated with Nintendo.
+  </footer>
+</main>
+</body>
+</html>
