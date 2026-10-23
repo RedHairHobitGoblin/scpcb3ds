@@ -12,7 +12,7 @@ import sys
 
 import qrcode
 
-REPO = "cheapcow787-gif/scpcb3ds"
+REPO = "RedHairHobitGoblin/scpcb3ds"
 GH = os.environ.get("GH", r"C:\Users\Computer User\tools\gh\bin\gh.exe")
 
 
