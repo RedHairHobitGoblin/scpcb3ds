@@ -5,7 +5,7 @@ build/
 upstream/
 romfs/
 .testing/
-/*.cia
+/SCPCB3DS.cia
 .cia/dl/
 .cia/banner.bnr
 switch_security_research.md
