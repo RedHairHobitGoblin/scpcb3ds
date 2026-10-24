@@ -83,6 +83,10 @@ To use a keycard, tap it in the inventory to hold it, then press A at the door's
 `make DEBUG=1` adds SELECT for noclip; in noclip, D-Pad Left/Right jumps between doors and
 D-Pad Up takes the next item.
 
+## Roadmap
+
+![Roadmap](docs/img/roadmap.png)
+
 ## License and credits
 
 SCP - Containment Breach was created by Joonas "Regalis" Rikkonen and contributors,

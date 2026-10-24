@@ -553,3 +553,16 @@ void introDebugToChamber(World* w, IntroPlayer* p)
 	I.t = 0;
 	worldStream(w, p->pos);
 }
+
+void introDebugFollow(World* w, IntroPlayer* p, char* out, int size)
+{
+	Npc* u = npcGet(I.ulgrin);
+	if (I.stage != I_ESCORT || !u) return;
+	float yr = u->yaw * DEG2RAD;
+	p->pos[0] = u->pos[0] + sinf(yr) * 2.0f;
+	p->pos[2] = u->pos[2] - cosf(yr) * 2.0f;
+	p->pos[1] = u->pos[1] + 0.3f;
+	float l[3];
+	localOf(w, u->pos, l);
+	snprintf(out, size, "ulgrin %.0f,%.0f wait %.1f f%.0f", l[0], l[2], I.doorWait, u->frame);
+}

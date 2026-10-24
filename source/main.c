@@ -768,6 +768,13 @@ static void updatePlayer(float dt, u32 kDown, u32 kHeld)
 	}
 
 	static int debugArea = -1;
+	if (P.noclip && introRunning()) {
+		IntroPlayer ip = { P.pos, &P.yaw, &P.pitch, &P.blinkTimer, &P.fade, &P.frozen, false, s_eye };
+		static char follow[64];
+		follow[0] = 0;
+		introDebugFollow(&world, &ip, follow, sizeof(follow));
+		if (follow[0]) hudMessage(follow, 1);
+	}
 	if (P.noclip && (kDown & KEY_ZL) && world.introActive) {
 		IntroPlayer ip = { P.pos, &P.yaw, &P.pitch, &P.blinkTimer, &P.fade, &P.frozen, false, s_eye };
 		introDebugToChamber(&world, &ip);

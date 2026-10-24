@@ -22,3 +22,5 @@ bool introRunning(void);
 void introFinish(World* w, IntroPlayer* p);
 
 void introDebugToChamber(World* w, IntroPlayer* p);
+
+void introDebugFollow(World* w, IntroPlayer* p, char* out, int size);
