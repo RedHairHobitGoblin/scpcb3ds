@@ -1,0 +1,6 @@
+{
+  "name": "bliss-wisp",
+  "private": true,
+  "scripts": { "start": "wisp-js-server --host 0.0.0.0 --port ${PORT:-5001}" },
+  "dependencies": { "@mercuryworkshop/wisp-js": "0.5.3" }
+}

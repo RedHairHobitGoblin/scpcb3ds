@@ -1,0 +1,8 @@
+services:
+  - type: web
+    name: bliss-wisp
+    runtime: node
+    rootDir: wisp-server
+    buildCommand: npm install
+    startCommand: npm start
+    plan: free
